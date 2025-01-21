@@ -24,7 +24,7 @@ def outline_writer(state: State, model):
     prompt = HumanMessage(content=OUTLINE_PROMPT(
         original_article={state['original_article']}
     ))
-    response = model.invoke(prompt)
+    response = model.invoke([prompt])
     
     formatted_response = remove_json_markers(response.content)
     formatted_response = json.loads(formatted_response)

@@ -23,7 +23,7 @@ async def process_source(request: SourceRequest):
         return {
             "elapsed_time": elapsed_time,
             "article": result["final_article"],
-            "new_outline": result["new_outline"],
+            "paragraphs": result["paragraphs"],
         }
     except Exception as e:
         print(e)
@@ -75,19 +75,3 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("api:app", host="localhost", port=8000, reload=True)
-    
-    # if os.getenv("DEV") == "true":
-    #     uvicorn.run("api:app", host="localhost", port=8000, reload=True)
-    # else:
-    #     import multiprocessing
-    #     # For production with multiple workers
-    #     uvicorn.run(
-    #         "api:app",
-    #         host="0.0.0.0",
-    #         port=8000,
-    #         workers=multiprocessing.cpu_count(),
-    #         loop="uvloop",
-    #         http="httptools",
-    #         log_level="info",
-    #         access_log=True
-    #     )
