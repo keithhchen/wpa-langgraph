@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel
 from src import run_workflow, graph  # Import from src package
 from langchain_core.runnables.graph import MermaidDrawMethod
@@ -9,17 +9,27 @@ import os
 
 app = FastAPI()
 
+from typing import Union
+
 class SourceRequest(BaseModel):
-    source: str
+    source: Union[str, dict]
+
+    def get_source(self) -> str:
+        if isinstance(self.source, dict):
+            return str(self.source)
+        return self.source
 
 @app.post("/process")
-async def process_source(request: SourceRequest):
+async def process_source(request: SourceRequest, plain: bool = False):
     try:
         start_time = time.time()
-        result = run_workflow(request.source)
+        result = run_workflow(request.get_source())  # Use get_source() method
         end_time = time.time()
         elapsed_time = round(end_time - start_time, 2)
         
+        if plain:
+            return PlainTextResponse(result["final_article"])
+            
         return {
             "elapsed_time": elapsed_time,
             "article": result["final_article"],

@@ -99,17 +99,10 @@ WHOLE_ARTICLE_PROMPT = """
 def generate_final_article(title, insights, outline, transcript):
     body = ""
     for node in outline:
-        body += f"""
-        ## {node['title']}
-        {node['full_text']}
-        """
+        body += f"""## {node['title']}\n{node['full_text']}\n"""
     if transcript.strip():
-        transcript = f"\n## 详细对话\n{transcript}"
-    return f"""# {title}
-    ## 亮点
-    {insights}
-    {body}
-    {transcript}
+        transcript = f"## 详细对话\n{transcript}"
+    return f"""# {title}\n## 亮点\n{insights}\n{body}\n{transcript}
     """
     
 INSIGHTS_PROMPT = """
@@ -122,7 +115,7 @@ INSIGHTS_PROMPT = """
     避免任何解释或解读（如“这表明/说明/意味着……”）；仅需提取和突出这些具有冲击力的信息点。
     回答应直接引用文章中的独特事实，不需解释，仅提供准确的内容。
     每条内容用单行简洁表达，无需加标题或标注来源，如“某人认为/表示……”等，仅陈述核心信息。
-    必须用中文回复，除了人名和特殊名词、品牌之外。
+    必须用中文的 bullet points 回复，除了人名和特殊名词、品牌之外。
     </instructions>
     """
 
