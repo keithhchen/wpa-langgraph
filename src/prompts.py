@@ -1,4 +1,4 @@
-from json_schema import json_schema
+from .json_schema import json_schema
 def OUTLINE_PROMPT(original_article):
     base_prompt = """
         <role>

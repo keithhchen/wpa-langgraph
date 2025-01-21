@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from graph import run_workflow, graph
+from src import run_workflow, graph  # Import from src package
 from langchain_core.runnables.graph import MermaidDrawMethod
 import traceback 
 import time

@@ -1,10 +1,9 @@
 from langgraph.types import Send
 from langchain_core.messages import HumanMessage, AIMessage
 import json
-from prompts import OUTLINE_PROMPT, PARAGRAPH_PROMPT, INSIGHTS_PROMPT, TRANSCRIPT_PROMPT, FACT_CHECKER_PROMPT, generate_final_article
-from utils import remove_json_markers
-from state import State, ParagraphState
-
+from .prompts import OUTLINE_PROMPT, PARAGRAPH_PROMPT, INSIGHTS_PROMPT, TRANSCRIPT_PROMPT, FACT_CHECKER_PROMPT, generate_final_article
+from .utils import remove_json_markers
+from .state import State, ParagraphState
 
 def select_next(state: State):
     current_index = state["current_index"]

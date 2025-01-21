@@ -2,8 +2,16 @@ import os
 from dotenv import load_dotenv
 from langgraph.graph import StateGraph, START, END
 from langchain_openai import ChatOpenAI
-from state import State
-from nodes import outline_writer, paragraph_writer, final_writer, insights_writer, transcript_writer, select_next, continue_to_paragraphs, final_writer
+from .state import State
+from .nodes import (
+    outline_writer,
+    paragraph_writer,
+    final_writer,
+    insights_writer,
+    transcript_writer,
+    select_next,
+    continue_to_paragraphs
+)
 
 # Load environment variables from .env file
 load_dotenv()
