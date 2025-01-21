@@ -96,6 +96,22 @@ WHOLE_ARTICLE_PROMPT = """
     </json>
     """
 
+def generate_final_article(title, insights, outline, transcript):
+    body = ""
+    for node in outline:
+        body += f"""
+        ## {node['title']}
+        {node['full_text']}
+        """
+    if transcript.strip():
+        transcript = f"\n## 详细对话\n{transcript}"
+    return f"""# {title}
+    ## 亮点
+    {insights}
+    {body}
+    {transcript}
+    """
+    
 INSIGHTS_PROMPT = """
     <original-article>
     {original_article}
@@ -124,7 +140,7 @@ TRANSCRIPT_PROMPT = """
         Speaker Name: content
         Speaker Name: content
         Speaker Name: content
-    otherwise, return an empty string
+    otherwise, absolutely return an empty string with zero explanation
     </instructions>
     """
 

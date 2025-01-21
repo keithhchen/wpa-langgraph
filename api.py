@@ -23,10 +23,7 @@ async def process_source(request: SourceRequest):
         return {
             "elapsed_time": elapsed_time,
             "article": result["final_article"],
-            "messages": result["messages"],
-            "outline": result["outline"],
-            "current_index": result["current_index"],
-            "current_index": result["current_index"],
+            "new_outline": result["new_outline"],
         }
     except Exception as e:
         print(e)
