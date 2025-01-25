@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+import logging
 from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel
 from src import run_workflow, graph  # Import from src package
@@ -11,19 +12,38 @@ app = FastAPI()
 
 from typing import Union
 
+class Metadata(BaseModel):
+    title: str | None = None
+    source: str | None = None
+    link: str | None = None
+    description: str | None = None
+    author: str | None = None
+
 class SourceRequest(BaseModel):
     source: Union[str, dict]
+    metadata: Metadata | None = None
 
     def get_source(self) -> str:
         if isinstance(self.source, dict):
             return str(self.source)
         return self.source
 
+logger = logging.getLogger("uvicorn")
+
 @app.post("/process")
-async def process_source(request: SourceRequest, plain: bool = False):
+def process_source(request: SourceRequest, plain: bool = False):
+    logger.info("Processing new request")
+    if request.metadata:
+        logger.info(f"Metadata: {request.source}")
+        logger.info(f"Metadata: {request.metadata}")
+
     try:
         start_time = time.time()
-        result = run_workflow(request.get_source())  # Use get_source() method
+        # Pass both source and metadata to run_workflow
+        result = run_workflow(
+            input_message=request.get_source(),
+            metadata=request.metadata.dict() if request.metadata else None
+        )
         end_time = time.time()
         elapsed_time = round(end_time - start_time, 2)
         
@@ -37,13 +57,12 @@ async def process_source(request: SourceRequest, plain: bool = False):
             "paragraphs": result["paragraphs"],
         }
     except Exception as e:
-        print(e)
         error_details = {
             "error": str(e),
             "traceback": traceback.format_exc(),
             "type": str(type(e).__name__)
         }
-        print("Error details:", error_details)
+        logger.error(error_details)
         raise HTTPException(status_code=500, detail=error_details)
 
 @app.get("/graph")

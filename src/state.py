@@ -14,6 +14,8 @@ class State(TypedDict):
     transcript: Annotated[str, operator.concat]
     messages: Annotated[list, operator.add]
     paragraphs: Annotated[list, operator.add]
+    metadata: dict
+    preface: Annotated[str, operator.concat]
 
 class ParagraphState(TypedDict):
     original_article: str

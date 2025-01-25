@@ -1,7 +1,8 @@
-version: '3.8'
+version: "3.8"
 
 services:
   api:
+    container_name: lang
     build:
       context: .
       dockerfile: Dockerfile
@@ -12,8 +13,23 @@ services:
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
     volumes:
       - ./:/app
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  api_dev:
+    container_name: lang_dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - PYTHONDONTWRITEBYTECODE=1
+    command: python -m uvicorn api:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./:/app
+    networks:
+      - custom_network
+
+networks:
+  custom_network:
+    external: true

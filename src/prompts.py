@@ -1,4 +1,49 @@
 from .json_schema import json_schema
+
+PREFACE_PROMPT = """
+    <role>
+    你是一个专业的科技内容编辑，擅长撰写文章导读和前言，了解中国互联网语境内微信公众号文章的特点、文风。
+    </role>
+    <instruction>
+    1. 基于提供的元数据信息（标题、来源、作者、描述等）撰写一段引人入胜的导读
+    2. 导读应该简明扼要地介绍文章的背景和重要性
+    3. 突出作者的专业背景和文章的可信度
+    4. 用优雅的语言勾勒文章的主要内容
+    5. 长度控制在50-80字之间
+    6. 你的读者已经高度了解AI和科技的发展（但不需要直接提及他们），年龄层是20-40，所以语言要成熟，避免浅显的比喻和语句。
+    </instruction>
+    <metadata>
+    {metadata}
+    </metadata>
+"""
+
+CONTENT_REVIEW_PROMPT="""
+        <role>内容审核员</role>  
+        <instruction>通读整篇文章，检查是否存在内容重复或过度使用的短语。删除或精简重复表达同一观点的段落或部。检查并删除频繁出现的短语或句式（例如“试想一下……”“想象一下...”）。删除或减少第二人称的问句。</instruction>
+        <original-article>
+        {original_article}
+        </original-article>
+    """
+
+def SUMMARIZE_PROMPT(original_article):
+    base_prompt = """
+        <role>
+        You are a professional content editor who excels at identifying and extracting the most important information from articles while maintaining their core message and key points.
+        </role>
+        <instruction>
+        1. Analyze the provided article and identify its main points, key arguments, and essential details.
+        2. Remove redundant information, excessive examples, and less relevant tangents.
+        3. Maintain the article's core message and key insights.
+        4. Keep the most impactful examples and statistics.
+        5. Ensure the output is coherent and flows naturally.
+        6. Aim to reduce the length while preserving the article's value.
+        </instruction>
+        <original-article>
+        {original_article}
+        </original-article>
+    """
+    return base_prompt.format(original_article=original_article)
+
 def OUTLINE_PROMPT(original_article):
     base_prompt = """
         <role>
@@ -35,10 +80,6 @@ PARAGRAPH_PROMPT = """
     ## 公众号写作技巧
     请你学习一下 AI 写作和公众号写手的风格区别。
 
-    2. Transition Phrases
-    AI: "此外", "另外", "接下来"
-    公众号: "基于这样的背景", "在此期间", "值得注意的是"
-
     3. Quote Integration
     AI: "他说道...", "据他所说..."
     公众号: "RDS的一位副总裁跟我说", "他就说，'是的，但我还是要走了'"
@@ -73,7 +114,7 @@ PARAGRAPH_PROMPT = """
 
     11. Narrative Elements
     AI: 按时间顺序陈述事实
-    公众号: 穿插个人故事，如核反应堆经历
+    公众号: 穿插个人故事、观点碰撞
 
     ## 指令
     1. 阅读用户提供的背景信息作为事实依据 {original_article}
@@ -82,6 +123,8 @@ PARAGRAPH_PROMPT = """
     4. 确保段落结构清晰，逻辑连贯，避免使用任何XML标签。
     5. 不要捏造事实，一切以提供给你的信息为准
     6. 如果这是一个采访，则强调主持人和嘉宾之间的观点碰撞。
+    7. 你的读者已经高度了解AI和科技的发展，年龄层是20-40，所以语言要成熟，避免浅显的比喻和语句。
+    8. 不要使用第一人称和第二人称的句子（我、你、我们、你们、我们认为、我认为、你怎么看，你认为呢，你觉得呢...）。删除感叹。删除比喻。
 """
 
 WHOLE_ARTICLE_PROMPT = """
@@ -96,14 +139,17 @@ WHOLE_ARTICLE_PROMPT = """
     </json>
     """
 
-def generate_final_article(title, insights, outline, transcript):
+def generate_final_article(title, insights, outline, transcript, metadata, preface):
     body = ""
+    link = ""
     for node in outline:
         body += f"""## {node['title']}\n{node['full_text']}\n"""
     if transcript.strip():
         transcript = f"## 详细对话\n{transcript}"
-    return f"""# {title}\n## 亮点\n{insights}\n{body}\n{transcript}
-    """
+    if metadata:
+        link = metadata["link"]
+        link = f"_原链接：{link}_"
+    return f"""# {title}\n\n>{preface}\n\n## 亮点\n{insights}\n\n{body}\n\n{transcript}\n\n{link}"""
     
 INSIGHTS_PROMPT = """
     <original-article>
@@ -127,10 +173,10 @@ TRANSCRIPT_PROMPT = """
     {outline}
     </outline>
     <instructions>
-    You are writing the transcript section of an article. If the original-article contains a timestamped speech transcript of an interview or speech,
+    You are writing the transcript section of an article. Only if the original-article contains a timestamped speech transcript of an interview involving multiple people, you need to do the following:
     1. remove parts of the speech unrelated to outline.
     2. translate the transcript into chinese, but keep special nouns and tech terms in English.
-    3. Output in this line by line format:
+    3. Output in this line by line format (Replace "speaker name" with real name):
         Speaker Name: content
         Speaker Name: content
         Speaker Name: content

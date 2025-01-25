@@ -2,5 +2,7 @@ langgraph
 langchain_openai
 python-dotenv
 fastapi
-uvicorn[standard]
+uvicorn
 pydantic
+duckduckgo-search
+langchain-community

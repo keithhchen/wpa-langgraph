@@ -1,12 +1,15 @@
 from .graph import run_workflow, graph, create_sequential_graph
 from .state import State, ParagraphState
+
 from .nodes import (
     outline_writer,
     paragraph_writer,
     insights_writer,
     transcript_writer,
     final_writer,
-    continue_to_paragraphs
+    continue_to_paragraphs,
+    web_search_writer,
+    content_review_writer
 )
 
 __all__ = [
@@ -20,5 +23,7 @@ __all__ = [
     'insights_writer',
     'transcript_writer',
     'final_writer',
-    'continue_to_paragraphs'
+    'continue_to_paragraphs',
+    'web_search_writer',
+    'content_review_writer'
 ]
