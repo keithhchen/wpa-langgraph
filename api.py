@@ -34,7 +34,6 @@ logger = logging.getLogger("uvicorn")
 def process_source(request: SourceRequest, plain: bool = False):
     logger.info("Processing new request")
     if request.metadata:
-        logger.info(f"Metadata: {request.source}")
         logger.info(f"Metadata: {request.metadata}")
 
     try:
