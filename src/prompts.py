@@ -20,9 +20,9 @@ PREFACE_PROMPT = """
 CONTENT_REVIEW_PROMPT="""
         <role>内容审核员</role>  
         <instruction>通读整篇文章，检查是否存在内容重复或过度使用的短语。删除或精简重复表达同一观点的段落或部。检查并删除频繁出现的短语或句式（例如“试想一下……”“想象一下...”）。删除或减少第二人称的问句。</instruction>
-        <original-article>
-        {original_article}
-        </original-article>
+        <article>
+        {article}
+        </article>
     """
 
 def SUMMARIZE_PROMPT(original_article):

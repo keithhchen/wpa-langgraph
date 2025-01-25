@@ -38,21 +38,17 @@ def create_sequential_graph(llm1, llm2):
 
     # Nodes
     workflow.add_node("outline_node", lambda state: outline_writer(state, llm2))
-    # workflow.add_node("web_search_node", lambda state: web_search_writer(state))
     workflow.add_node("paragraph_node", lambda state: paragraph_writer(state, llm2))
     workflow.add_node("insights_node", lambda state: insights_writer(state, llm2))
     workflow.add_node("transcript_node", lambda state: transcript_writer(state, llm2))
     workflow.add_node("end_node", lambda state: final_writer(state))
     workflow.add_node("content_review_node", lambda state: content_review_writer(state, llm2))
-    # workflow.add_node("fact_checker", lambda state: fact_checker(state, llm1))
-    # workflow.add_conditional_edges("outline_node", lambda state: select_next(state))
-    workflow.add_node("summarize_node", lambda state: summarize_writer(state, llm2))
     workflow.add_node("preface_node", lambda state: preface_writer(state, llm2))
+    # workflow.add_node("web_search_node", lambda state: web_search_writer(state))
+    # workflow.add_node("fact_checker", lambda state: fact_checker(state, llm1))
+    # workflow.add_node("summarize_node", lambda state: summarize_writer(state, llm2))
     
     # Create the sequential flow
-    # workflow.add_edge(START, "summarize_node")
-    # workflow.add_edge("summarize_node", "outline_node")
-    # workflow.add_edge("web_search_node", "outline_node")
     workflow.add_edge(START, "outline_node")
     # All parallel
     workflow.add_edge("outline_node", "preface_node")
