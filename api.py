@@ -45,7 +45,7 @@ def process_source(request: SourceRequest, plain: bool = False):
         )
         end_time = time.time()
         elapsed_time = round(end_time - start_time, 2)
-        
+        logger.info(f"/process completed for {result['outline']['title']} in {elapsed_time} seconds")
         if plain:
             return PlainTextResponse(result["final_article"])
             
