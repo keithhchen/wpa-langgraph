@@ -9,7 +9,7 @@ def take_latest(old_value, new_value) -> T:
 class State(TypedDict):
     original_article: Annotated[str, take_latest]
     outline: Annotated[dict, take_latest]
-    final_article: Annotated[str, operator.concat]
+    final_article: str
     insights: Annotated[str, operator.concat]
     transcript: Annotated[str, operator.concat]
     messages: Annotated[list, operator.add]
