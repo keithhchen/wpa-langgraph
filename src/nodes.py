@@ -6,8 +6,9 @@ from .prompts import OUTLINE_PROMPT, CONTENT_REVIEW_PROMPT, PARAGRAPH_PROMPT, IN
 from .utils import remove_json_markers
 from .state import State, ParagraphState
 from .web_search import enrich_content
+from json.decoder import JSONDecodeError  # Add this import at the top
 
-# logger = logging.getLogger("uvicorn")
+logger = logging.getLogger("uvicorn")
 # print = logger.info
 
 def preface_writer(state: State, model):
@@ -60,6 +61,7 @@ def outline_writer(state: State, model):
     
     formatted_response = remove_json_markers(response.content)
     formatted_response = json.loads(formatted_response)
+    logger.info(formatted_response)
 
     return {
         "outline": formatted_response,
@@ -86,27 +88,40 @@ def web_search_writer(state: State):
     }
     
 def paragraph_writer(state: ParagraphState, model):
-    node = state['node']
-    print("writing paragraph: " + node["node_id"])
+    try:
+        node = state['node']
+        logger.info(f"Writing paragraph: {node['node_id']}")
 
-    new_message = HumanMessage(content=PARAGRAPH_PROMPT.format(
-        original_article=state['original_article'],
-        node=node
-    ))
+        new_message = HumanMessage(content=PARAGRAPH_PROMPT.format(
+            original_article=state['original_article'],
+            node=node
+        ))
 
+        response = model.invoke([new_message])
 
-    response = model.invoke([new_message])
+        new_node = {
+            "node_id": node['node_id'],
+            "title": node['title'],
+            "full_text": response.content
+        }
 
-    new_node = {
-        "node_id": node['node_id'],
-        "title": node['title'],
-        "full_text": response.content
-    }
+        return {
+            "paragraphs": [new_node],
+            "messages": [AIMessage(content=response.content)]
+        }
 
-    return {
-        "paragraphs": [new_node],
-        "messages": [AIMessage(content=response.content)]
-    }
+    except KeyError as e:
+        error_msg = f"Missing required key in state or node: {e}. State: {state}"
+        logger.error(error_msg)
+        raise KeyError(error_msg)
+    except JSONDecodeError as e:
+        error_msg = f"JSON decode error in response: {str(e)}. Response content: {response.content if 'response' in locals() else 'N/A'}"
+        logger.error(error_msg)
+        raise JSONDecodeError(f"{error_msg}. Original error: {str(e)}", e.doc, e.pos)
+    except Exception as e:
+        error_msg = f"Error in paragraph_writer: {str(e)}. Node: {node if 'node' in locals() else 'N/A'}, State: {state}"
+        logger.error(error_msg)
+        raise Exception(error_msg)
 
 def continue_to_paragraphs(state: State) -> list[Send]:
     """Generate Send objects for each subject to be processed in parallel."""
