@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from langgraph.graph import StateGraph, START, END
 from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
 from .state import State
 from .nodes import (
     outline_writer,
@@ -25,12 +26,23 @@ llm1 = ChatOpenAI(model="gpt-4o-mini")
 # openai_llm = openai_llm.bind(response_format={"type": "json_object"})
 
 # deepseek
+# llm2 = ChatOpenAI(
+#     model="deepseek-chat",
+#     base_url="https://api.deepseek.com/v1",
+#     api_key=os.environ.get("DEEPSEEK_API_KEY")
+#     )
 llm2 = ChatOpenAI(
-    model="deepseek-chat",
-    base_url="https://api.deepseek.com/v1",
-    api_key=os.environ.get("DEEPSEEK_API_KEY")
+    model="deepseek/deepseek-chat",
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.environ.get("OPENROUTER_API_KEY")
     )
-# deepseek_llm = deepseek_llm.bind(response_format={"type": "json_object"})
+
+# claude
+# llm3 = ChatOpenAI(
+#     model="claude-3-5-sonnet-20240620",
+#     base_url="https://api.geekapi.io/v1",
+#     api_key=os.environ.get("DEEPSEEK_API_KEY")
+#     )
 
 def create_sequential_graph(llm1, llm2):
     # Create a new graph
