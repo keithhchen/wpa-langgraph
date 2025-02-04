@@ -36,6 +36,11 @@ llm2 = ChatOpenAI(
     base_url="https://openrouter.ai/api/v1",
     api_key=os.environ.get("OPENROUTER_API_KEY")
     )
+# llm2 = ChatOpenAI(
+#     model="deepseek-ai/DeepSeek-V3",
+#     base_url="https://api.siliconflow.cn/v1",
+#     api_key=os.environ.get("SILICONFLOW_API_KEY")
+#     )
 
 # claude
 # llm3 = ChatOpenAI(

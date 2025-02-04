@@ -50,23 +50,31 @@ def select_next(state: State):
     return "next_paragraph"
 
 def outline_writer(state: State, model):
-    # Get the messages from the state
-    print("writing outline")
-    print("------------------")
+    try:
+        print("writing outline")
+        print("------------------")
 
-    prompt = HumanMessage(content=OUTLINE_PROMPT(
-        original_article={state['original_article']}
-    ))
-    response = model.invoke([prompt])
-    
-    formatted_response = remove_json_markers(response.content)
-    formatted_response = json.loads(formatted_response)
-    logger.info(formatted_response)
+        prompt = HumanMessage(content=OUTLINE_PROMPT(
+            original_article={state['original_article']}
+        ))
+        response = model.invoke([prompt])
+        
+        formatted_response = remove_json_markers(response.content)
+        formatted_response = json.loads(formatted_response)
+        logger.info(formatted_response)
 
-    return {
-        "outline": formatted_response,
-        "messages": [AIMessage(content=response.content)]
-    }
+        return {
+            "outline": formatted_response,
+            "messages": [AIMessage(content=response.content)]
+        }
+    except JSONDecodeError as e:
+        error_msg = f"JSON decode error in outline: {str(e)}. Raw response: {response.content if 'response' in locals() else 'N/A'}"
+        logger.error(error_msg)
+        raise JSONDecodeError(f"{error_msg}. Original error: {str(e)}", e.doc, e.pos)
+    except Exception as e:
+        error_msg = f"Error in outline_writer: {str(e)}. State: {state}"
+        logger.error(error_msg)
+        raise Exception(error_msg)
 
 def web_search_writer(state: State):
     print("enriching content with web search")
@@ -104,6 +112,8 @@ def paragraph_writer(state: ParagraphState, model):
             "title": node['title'],
             "full_text": response.content
         }
+        
+        logger.info(f"New node: {new_node}")
 
         return {
             "paragraphs": [new_node],
@@ -181,16 +191,22 @@ def content_review_writer(state: State, model):
     print("reviewing content for redundancy")
     print("------------------")
     
-    # system_message = SystemMessage(content="""You are a professional editor focused on removing redundancy and improving clarity. Maintain the original meaning while making the text more concise.""")
-    new_message = HumanMessage(content=CONTENT_REVIEW_PROMPT.format(
-        article=state['final_article']
-    ))
-    response = model.invoke([new_message])
+    try:
+        # system_message = SystemMessage(content="""You are a professional editor focused on removing redundancy and improving clarity. Maintain the original meaning while making the text more concise.""")
+        new_message = HumanMessage(content=CONTENT_REVIEW_PROMPT.format(
+            article=state['final_article']
+        ))
+        response = model.invoke([new_message])
 
-    return {
-        "final_article": response.content,
-        "messages": [AIMessage(content=response.content)]
-    }
+        return {
+            "final_article": response.content,
+            "messages": [AIMessage(content=response.content)]
+        }
+    except JSONDecodeError as e:
+        error_msg = f"JSON decode error in content_review_writer: {str(e)}. Response content: {response.content if 'response' in locals() else 'N/A'}"
+        logger.error(error_msg)
+        logger.error(f"{e.msg}")
+        raise JSONDecodeError(f"{error_msg}. Original error: {str(e)}", e.doc, e.pos)
 
 def fact_checker(state: State, model):
     new_message = HumanMessage(content=FACT_CHECKER_PROMPT.format(
