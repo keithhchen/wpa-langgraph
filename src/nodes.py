@@ -2,7 +2,7 @@ from langgraph.types import Send
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 import json
 import logging
-from .prompts import OUTLINE_PROMPT, CONTENT_REVIEW_PROMPT, PARAGRAPH_PROMPT, INSIGHTS_PROMPT, TRANSCRIPT_PROMPT, FACT_CHECKER_PROMPT, SUMMARIZE_PROMPT, PREFACE_PROMPT, generate_final_article
+from .prompts import OUTLINE_PROMPT, CONTENT_REVIEW_PROMPT, PARAGRAPH_PROMPT, INSIGHTS_PROMPT, TRANSCRIPT_PROMPT, FACT_CHECKER_PROMPT, SUMMARIZE_PROMPT, PREFACE_PROMPT, IMPROVE_TITLE_PROMPT, generate_final_article
 from .utils import remove_json_markers
 from .state import State, ParagraphState
 from .web_search import enrich_content
@@ -22,6 +22,23 @@ def preface_writer(state: State, model):
     
     return {
         "preface": response.content,
+        "messages": [AIMessage(content=response.content)]
+    }
+def improve_title_writer(state: State, model):
+    logger.info("writing better titles")
+    logger.info("------------------")
+
+    prompt = HumanMessage(content=IMPROVE_TITLE_PROMPT.format(
+        outline=state['outline']
+    ))
+    response = model.invoke([prompt])
+    
+    formatted_response = remove_json_markers(response.content)
+    formatted_response = json.loads(formatted_response)
+    logger.info(f"improved titles: {formatted_response}")
+    
+    return {
+        "outline": formatted_response,
         "messages": [AIMessage(content=response.content)]
     }
 
@@ -146,11 +163,16 @@ def final_writer(state: State):
     outline = state["outline"]
     paragraphs = state["paragraphs"]
     # Create a lookup table from the current order in `state['outline']['children']`
-    order = {item['node_id']: index for index, item in enumerate(state['outline']['children'])}
+    order_map = {item['node_id']: index for index, item in enumerate(state['outline']['children'])}
+    # Create title mapping from outline children
+    title_map = {child['node_id']: child['title'] for child in state['outline']['children']}
 
     # Sort `state['paragraphs']` based on the lookup table
-    paragraphs.sort(key=lambda x: order.get(x['node_id'], float('inf')))
+    paragraphs.sort(key=lambda x: order_map.get(x['node_id'], float('inf')))
     
+    # Update titles from outline
+    for para in paragraphs:
+        para['title'] = title_map.get(para['node_id'], para['title'])
     return {
         "final_article": generate_final_article(
             title=outline['title'],

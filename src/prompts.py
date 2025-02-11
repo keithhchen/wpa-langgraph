@@ -17,6 +17,12 @@ PREFACE_PROMPT = """
     </metadata>
 """
 
+IMPROVE_TITLE_PROMPT = """
+{outline}
+---
+以上是一篇微信公众号文章的大纲（json 格式），请改善所有的标题和小标题，使其变得更加锐利、更有吸引力。only reply in the same json schema, and do not lead with ```json``` or linebreaks
+"""
+
 CONTENT_REVIEW_PROMPT="""
         <role>公众号写手</role>  
         <instruction>通读整篇文章，检查是否存在内容重复或过度使用的短语。删除或精简重复表达同一观点的段落或部。检查并删除频繁出现的短语或句式（例如“试想一下……”“想象一下...”）。删除或减少第二人称的问句。
